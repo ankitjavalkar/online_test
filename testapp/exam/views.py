@@ -481,7 +481,9 @@ def add_quiz(request, quiz_id=None):
                 d.time_between_attempts = form['time_between_attempts'].data
                 d.save()
                 quiz = Quiz.objects.get(id=quiz_id)
-                return my_redirect("/exam/manage/showquiz")
+                # return my_redirect("/exam/manage/showquiz")
+                return my_redirect("/exam/manage/designquestionpaper")
+
         else:
             return my_render_to_response('exam/add_quiz.html',
                                          {'form': form},
@@ -1390,7 +1392,7 @@ def ajax_questionpaper(request, query):
                               {'questions': questions})
 
 
-def design_questionpaper(request):
+def design_questionpaper(request, questionpaper_id=None):
     user = request.user
     ci = RequestContext(request)
 
@@ -1431,6 +1433,12 @@ def design_questionpaper(request):
         return my_redirect('/exam/manage/showquiz')
     else:
         form = RandomQuestionForm()
-        context = {'form': form}
-        return my_render_to_response('exam/design_questionpaper.html',
-                                     context, context_instance=ci)
+
+        if questionpaper_id is None:
+            context = {'form': form}
+            return my_render_to_response('exam/design_questionpaper.html',
+                                         context, context_instance=ci)
+        else:
+            context = {'form': form, 'added_questions': added_questions}
+            return my_render_to_response('exam/design_questionpaper.html',
+                                         context, context_instance=ci)
