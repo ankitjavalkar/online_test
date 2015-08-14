@@ -6,8 +6,11 @@ $(document).ready(function(){
 
     $question_type = $("#id_question_type");
     $marks = $("#id_marks");
+    $pick_number = $("#id_pick_number");
+    $numbers = $("#numbers")
 
     $total_marks = $("#total_marks");
+
     /* ajax requsts on selectors change */
     $question_type.change(function() {
         $.ajax({

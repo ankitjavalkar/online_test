@@ -481,8 +481,13 @@ def add_quiz(request, quiz_id=None):
                 d.time_between_attempts = form['time_between_attempts'].data
                 d.save()
                 quiz = Quiz.objects.get(id=quiz_id)
-                # return my_redirect("/exam/manage/showquiz")
-                return my_redirect("/exam/manage/designquestionpaper")
+                try:
+                    questionpaper_id = quiz.questionpaper_set.all()[0].id
+                    # return my_redirect("/exam/manage/showquiz")
+                    return my_redirect(("/exam/manage/designquestionpaper/"
+                                            "{0}").format(str(questionpaper_id)))
+                except:
+                    return my_redirect("/exam/manage/showquiz")                    
 
         else:
             return my_render_to_response('exam/add_quiz.html',
@@ -1407,8 +1412,86 @@ def design_questionpaper(request, questionpaper_id=None):
         if is_shuffle == 'on':
             is_shuffle = True
 
-        question_paper = QuestionPaper(shuffle_questions=is_shuffle)
-        quiz = Quiz.objects.order_by("-id")[0]
+        if not questionpaper_id:
+            question_paper = QuestionPaper(shuffle_questions=is_shuffle)
+            quiz = Quiz.objects.order_by("-id")[0]
+            # tot_marks = 0
+            # question_paper.quiz = quiz
+            # question_paper.total_marks = tot_marks
+            # question_paper.save()
+            # if fixed_questions:
+            #     fixed_questions_ids = ",".join(fixed_questions)
+            #     fixed_questions_ids_list = fixed_questions_ids.split(',')
+            #     for question_id in fixed_questions_ids_list:
+            #         question_paper.fixed_questions.add(question_id)
+            # if random_questions:
+            #     for random_question, num in zip(random_questions, random_number):
+            #         qid = random_question.split(',')[0]
+            #         question = Question.objects.get(id=int(qid))
+            #         marks = question.points
+            #         question_set = QuestionSet(marks=marks, num_questions=num)
+            #         question_set.save()
+            #         for question_id in random_question.split(','):
+            #             question_set.questions.add(question_id)
+            #             question_paper.random_questions.add(question_set)
+            # question_paper.update_total_marks()
+            # question_paper.save()
+            _design_questionpaper(question_paper, quiz, fixed_questions,
+                            random_questions, random_number, is_shuffle)
+            return my_redirect('/exam/manage/showquiz')
+        else:
+            question_paper = QuestionPaper.objects.get(id=int(questionpaper_id))
+            quiz = question_paper.quiz
+            print quiz, "##@ --------"
+            _design_questionpaper(question_paper, quiz, fixed_questions,
+                            random_questions, random_number, is_shuffle)
+            return my_redirect('/exam/manage/showquiz')
+
+    else:
+        form = RandomQuestionForm()
+
+        if questionpaper_id is None:
+            context = {'form': form}
+            return my_render_to_response('exam/design_questionpaper.html',
+                                         context, context_instance=ci)
+        else:
+            added_fixed_questions = []
+            added_random_questions = []
+            number_questions = None
+            
+            try:
+                questionpaper = QuestionPaper.objects.get(id=int(questionpaper_id))
+            except:
+                return my_redirect('/exam/manage/showquiz')
+
+            try:
+                fixed_qtn = questionpaper.fixed_questions.all()
+                for qtn in fixed_qtn:
+                    q = Question.objects.get(id=int(qtn.id))
+                    added_fixed_questions.append(q)
+
+                random_qtn_set = questionpaper.random_questions.all()[0]
+                random_qtn = random_qtn_set.questions.all()
+                number_questions = random_qtn_set.num_questions
+                for qtn in random_qtn:
+                    q = Question.objects.get(id=int(qtn.id))
+                    added_random_questions.append(q)
+
+            except:
+                pass
+
+            context = {'form': form,
+                        'questionpaper_id': questionpaper_id, 
+                        'added_fixed_questions': added_fixed_questions,
+                        'added_random_questions': added_random_questions,
+                        'num_questions': number_questions,
+                    }
+            return my_render_to_response('exam/design_questionpaper.html',
+                                         context, context_instance=ci)
+
+
+def _design_questionpaper(question_paper, quiz,  random_number, fixed_questions=None,
+                            random_questions=None, is_shuffle=False):
         tot_marks = 0
         question_paper.quiz = quiz
         question_paper.total_marks = tot_marks
@@ -1430,15 +1513,4 @@ def design_questionpaper(request, questionpaper_id=None):
                     question_paper.random_questions.add(question_set)
         question_paper.update_total_marks()
         question_paper.save()
-        return my_redirect('/exam/manage/showquiz')
-    else:
-        form = RandomQuestionForm()
-
-        if questionpaper_id is None:
-            context = {'form': form}
-            return my_render_to_response('exam/design_questionpaper.html',
-                                         context, context_instance=ci)
-        else:
-            context = {'form': form, 'added_questions': added_questions}
-            return my_render_to_response('exam/design_questionpaper.html',
-                                         context, context_instance=ci)
+        print "##@@ TESTERR ----", question_paper.id, question_paper.random_questions.all(), question_paper.fixed_questions.all() 

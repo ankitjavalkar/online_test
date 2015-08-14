@@ -48,7 +48,13 @@ select
     </a></li>
 </ul>
 
-<form action="{{URL_ROOT}}/exam/manage/designquestionpaper/" method="post" name=frm > {% csrf_token %}
+{% if questionpaper_id %}
+    {% url 'views.design_questionpaper' questionpaper_id as designquestionpaper_url %}
+{% else %}
+    {% url 'views.design_questionpaper' as designquestionpaper_url %}
+{% endif %}
+
+<form action="{{ designquestionpaper_url }}" method="post" name=frm > {% csrf_token %}
     <div>
         <h3>Total Marks:  <span id="total_marks" class="well">0</span></h3>
     </div>
@@ -68,6 +74,13 @@ select
     </div> <!-- /.row -->
     <br><br>
 
+    <div class="row">
+        <div class="span8">
+            <h5 style="padding-left: 20px;">No. Of Questions Picked from Pool:  <span id="pick_number" class="well">{{ num_questions }}</span></h5>
+        </div>
+    </div>
+    <br><br>
+
 
     <div class="tab-pane active" id="fixed-questions">
         <div class="row">
@@ -83,7 +96,16 @@ select
                 <div id="fixed-added-wrapper">
                     <p><u>Fixed questions currently in paper:</u></p>
                     <div id="fixed-added">
-                        {{ added_questions }}
+                        {% if added_fixed_questions %}
+                            {% for question in added_fixed_questions %}
+                                <div class="qcard">1 question(s) added
+                                    <ul>
+                                        <li> {{ question.summary }} </li>
+                                    </ul>
+                                    <input type="hidden" value="{{ question.id }}" name="fixed"><a href="#" class="remove" data-num="1" data-marks="{{ question.points }}">×</a>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -108,9 +130,18 @@ select
             </div>
             <div class="span7">
                 <div id="random-added-wrapper">
-                    <p><u>Pool of  questions currently in paper:</u></p>
+                    <p><u>Pool of questions currently in paper:</u></p>
                     <div id="random-added">
-                        {{ added_questions }}
+                        {% if added_random_questions %}
+                            {% for question in added_random_questions %}
+                                <div class="qcard">1 question(s) added
+                                    <ul>
+                                        <li> {{ question.summary }} </li>
+                                    </ul>
+                                    <input type="hidden" value="{{ question.id }}" name="random"><a href="#" class="remove" data-num="1" data-marks="{{ question.points }}">×</a>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
                     </div>
                 </div>
             </div>
