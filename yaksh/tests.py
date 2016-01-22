@@ -189,7 +189,7 @@ class QuestionPaperTestCases(unittest.TestCase):
         """ Test question paper"""
         self.assertEqual(self.question_paper.quiz.description, 'demo quiz')
         self.assertEqual(list(self.question_paper.fixed_questions.all()),
-                         [self.questions[3], self.questions[5]])
+                         [self.questions[3], self.questions[5]]) #@@@
         self.assertTrue(self.question_paper.shuffle_questions)
 
     def test_update_total_marks(self):
@@ -238,12 +238,11 @@ class QuestionPaperTestCases(unittest.TestCase):
         answerpaper = self.question_paper.make_answerpaper(self.user, self.ip,
                                                              attempt_num)
         self.assertIsInstance(answerpaper, AnswerPaper)
-        paper_questions = set((answerpaper.questions).split('|'))
+        paper_questions = answerpaper.questions.all()
         self.assertEqual(len(paper_questions), 7)
-        fixed = {'4', '6'}
-        boolean = fixed.intersection(paper_questions) == fixed
-        self.assertTrue(boolean)
-
+        fixed_questions = Question.objects.filter(id__in=(4,6))
+        for q in fixed_questions:
+            self.assertTrue(q in paper_questions)
 
 ###############################################################################
 class AnswerPaperTestCases(unittest.TestCase):
@@ -255,19 +254,20 @@ class AnswerPaperTestCases(unittest.TestCase):
         self.quiz = Quiz.objects.get(pk=1)
         self.question_paper = QuestionPaper(quiz=self.quiz, total_marks=3)
         self.question_paper.save()
+        self.questions = Question.objects.filter(id__lte=4)
 
         # create answerpaper
         self.answerpaper = AnswerPaper(user=self.user,
-                                       questions='1|2|3',
                                        question_paper=self.question_paper,
                                        start_time='2014-06-13 12:20:19.791297',
                                        end_time='2014-06-13 12:50:19.791297',
                                        user_ip=self.ip)
-        self.answerpaper.questions_answered = '1'
         self.attempted_papers = AnswerPaper.objects.filter(question_paper=self.question_paper,
                                                         user=self.user)
         already_attempted = self.attempted_papers.count()
         self.answerpaper.attempt_number = already_attempted + 1
+        self.answerpaper.save()
+        self.answerpaper.questions.add(*self.questions)
         self.answerpaper.save()
 
         # answers for the Answer Paper
@@ -285,40 +285,39 @@ class AnswerPaperTestCases(unittest.TestCase):
         self.assertEqual(self.answerpaper.user.username, 'demo_user')
         self.assertEqual(self.answerpaper.user_ip, self.ip)
         questions = self.answerpaper.questions
-        num_questions = len(questions.split('|'))
-        self.assertEqual(questions, '1|2|3')
-        self.assertEqual(num_questions, 3)
+        num_questions = len(questions.all())
+        self.assertEqual(num_questions, 4)
         self.assertEqual(self.answerpaper.question_paper, self.question_paper)
         self.assertEqual(self.answerpaper.start_time,
                          '2014-06-13 12:20:19.791297')
         self.assertEqual(self.answerpaper.end_time,
                          '2014-06-13 12:50:19.791297')
+        for q in questions.all():
+            self.assertTrue(q in Question.objects.filter(id__lte=4))
 
     def test_current_question(self):
         """ Test current_question() method of Answer Paper"""
         current_question = self.answerpaper.current_question()
-        self.assertEqual(current_question, '2')
+        self.assertEqual(current_question, Question.objects.get(id=2))
 
     def test_completed_question(self):
         """ Test completed_question() method of Answer Paper"""
-        question = self.answerpaper.completed_question(1)
-        self.assertEqual(self.answerpaper.questions_left(), 2)
+        answered_question = Question.objects.get(id=1)
+        next_question = self.answerpaper.completed_question(question_id=1)
+        self.assertEqual(self.answerpaper.questions_left(), 3)
+        self.assertEqual(self.answerpaper.get_answered_str()[0], answered_question)
+
 
     def test_questions_left(self):
         """ Test questions_left() method of Answer Paper"""
-        self.assertEqual(self.answerpaper.questions_left(), 2)
+        self.assertEqual(self.answerpaper.questions_left(), 3)
 
     def test_skip(self):
         """ Test skip() method of Answer Paper"""
         current_question = self.answerpaper.current_question()
-        next_question_id = self.answerpaper.skip(current_question)
-        self.assertTrue(next_question_id is not None)
-        self.assertEqual(next_question_id, '3')
-
-    def test_answered_str(self):
-        """ Test answered_str() method of Answer Paper"""
-        answered_question = self.answerpaper.get_answered_str()
-        self.assertEqual(answered_question, '1')
+        next_question = self.answerpaper.skip(current_question.id)
+        self.assertTrue(next_question is not None)
+        self.assertEqual(next_question, Question.objects.get(id=3))
 
     def test_update_marks_obtained(self):
         """ Test get_marks_obtained() method of Answer Paper"""
