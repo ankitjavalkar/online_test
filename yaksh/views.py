@@ -822,29 +822,17 @@ def start(request, attempt_num=None, questionpaper_id=None):
         user_dir = get_user_dir(user)
         return start(request, attempt_num, questionpaper_id)
 
+
 def get_questions(paper):
     '''
         Takes answerpaper as an argument. Returns the total questions as
         ordered dictionary, the questions yet to attempt and the questions
         attempted
     '''
-    to_attempt = []
-    submitted = []
-    all_questions = []
-    questions = {}
-    if paper.questions:
-        all_questions = (paper.questions).split('|')
-    if paper.questions_answered:
-        q_answered = (paper.questions_answered).split('|')
-        q_answered.sort()
-        submitted = q_answered
-    if paper.get_unanswered_questions():
-        q_unanswered = paper.get_unanswered_questions()
-        q_unanswered.sort()
-        to_attempt = q_unanswered
-    for index, value in enumerate(all_questions, 1):
-        questions[value] = index
-        questions = collections.OrderedDict(sorted(questions.items(), key=lambda x:x[1]))
+    submitted = paper.questions_answered.all()
+    to_attempt = paper.get_unanswered_questions()
+    questions = list(enumerate(paper.questions.all(), 1))
+
     return questions, to_attempt, submitted
 
 
@@ -890,7 +878,7 @@ def question(request, q_id, attempt_num, questionpaper_id, success_msg=None):
                                  context_instance=ci)
 
 
-def show_question(request, q_id, attempt_num, questionpaper_id, success_msg=None):
+def show_question(request, next_question, attempt_num, questionpaper_id, success_msg=None):
     """Show a question if possible."""
     user = request.user
     q_paper = QuestionPaper.objects.get(id=questionpaper_id)
@@ -905,11 +893,11 @@ def show_question(request, q_id, attempt_num, questionpaper_id, success_msg=None
         if  quest.type == 'code':
             old_skipped = paper.answers.filter(question=quest, skipped=True)
             _save_skipped_answer(old_skipped, user_code, paper, quest)
-    if len(q_id) == 0:
+    if next_question is None:
         msg = 'Congratulations!  You have successfully completed the quiz.'
         return complete(request, msg, attempt_num, questionpaper_id)
     else:
-        return question(request, q_id, attempt_num, questionpaper_id, success_msg)
+        return question(request, next_question.id, attempt_num, questionpaper_id, success_msg)
 
 
 def _save_skipped_answer(old_skipped, user_answer, paper, question):
@@ -934,14 +922,15 @@ def check(request, q_id, attempt_num=None, questionpaper_id=None):
     q_paper = QuestionPaper.objects.get(id=questionpaper_id)
     paper = AnswerPaper.objects.get(user=request.user, attempt_number=attempt_num,
             question_paper=q_paper)
-    if q_id in paper.questions_answered:
+    question = get_object_or_404(Question, pk=q_id)
+
+    if question in paper.questions_answered.all():
         next_q = paper.skip(q_id)
         return show_question(request, next_q, attempt_num, questionpaper_id)
 
     if not user.is_authenticated() or paper.end_time < datetime.datetime.now():
         return my_redirect('/exam/login/')
     
-    question = get_object_or_404(Question, pk=q_id)
     test_cases = TestCase.objects.filter(question=question)
 
     snippet_code = request.POST.get('snippet')
@@ -1089,8 +1078,8 @@ def get_question_labels(request, attempt_num=None, questionpaper_id=None):
     except AnswerPaper.DoesNotExist:
         return my_redirect('/exam/start/')
     questions, to_attempt, submitted = get_questions(paper)
-    for q_id, question_label in questions.items():
-        if q_id in to_attempt:
+    for question_label, q in questions:
+        if q in to_attempt:
             unattempted_questions.append(question_label)
         else:
             submitted_questions.append(question_label)

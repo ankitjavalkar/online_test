@@ -107,16 +107,16 @@ function call_skip(url)
   <div class="sidebar">
     <p>Question Navigator </p>
     <div class="pagination">
-        <ul>
-            {% for qid, num in questions.items %}
-                {% if qid in to_attempt %}
-                    {% if qid == question.id|slugify %}
-                        <li class="active"><a href="#" onclick="call_skip('{{ URL_ROOT }}/exam/{{ qid }}/{{ paper.attempt_number }}/{{ paper.question_paper.id }}/')">{{ num }}</a></li>
+         <ul>
+            {% for num, q in questions %}
+                {% if q in to_attempt %}
+                    {% if q.id|slugify == question.id|slugify %}
+                        <li class="active"><a href="#" onclick="call_skip('{{ URL_ROOT }}/exam/{{ q.id }}/{{ paper.attempt_number }}/{{ paper.question_paper.id }}/')">{{ num }}</a></li>
                     {% else %}
-                        <li><a href="#" onclick="call_skip('{{ URL_ROOT }}/exam/{{ qid }}/{{ paper.attempt_number }}/{{ paper.question_paper.id }}/')">{{ num }}</a></li>
+                        <li><a href="#" onclick="call_skip('{{ URL_ROOT }}/exam/{{ q.id }}/{{ paper.attempt_number }}/{{ paper.question_paper.id }}/')">{{ num }}</a></li>
                     {% endif %}
                 {% endif %}
-                {% if qid in submitted %}
+                {% if q in submitted %}
                     <li class="done"><a href="#">{{ num }}</a></li>
                 {% endif %}
             {% endfor %}

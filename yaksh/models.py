@@ -240,6 +240,21 @@ class QuestionPaper(models.Model):
             questions += question_set.get_random_questions()
         return questions
 
+    # def make_answerpaper(self, user, ip, attempt_num):
+    #     """Creates an  answer paper for the user to attempt the quiz"""
+    #     ans_paper = AnswerPaper(user=user, user_ip=ip, attempt_number=attempt_num)
+    #     ans_paper.start_time = datetime.datetime.now()
+    #     ans_paper.end_time = ans_paper.start_time \
+    #                          + datetime.timedelta(minutes=self.quiz.duration)
+    #     ans_paper.question_paper = self
+    #     questions = self._get_questions_for_answerpaper()
+    #     question_ids = [str(x.id) for x in questions]
+    #     if self.shuffle_questions:
+    #         shuffle(question_ids)
+    #     ans_paper.questions = "|".join(question_ids)
+    #     ans_paper.save()
+    #     return ans_paper
+
     def make_answerpaper(self, user, ip, attempt_num):
         """Creates an  answer paper for the user to attempt the quiz"""
         ans_paper = AnswerPaper(user=user, user_ip=ip, attempt_number=attempt_num)
@@ -248,11 +263,11 @@ class QuestionPaper(models.Model):
                              + datetime.timedelta(minutes=self.quiz.duration)
         ans_paper.question_paper = self
         questions = self._get_questions_for_answerpaper()
-        question_ids = [str(x.id) for x in questions]
+        # question_ids = [str(x.id) for x in questions]
         if self.shuffle_questions:
-            shuffle(question_ids)
-        ans_paper.questions = "|".join(question_ids)
+            shuffle(questions)
         ans_paper.save()
+        ans_paper.questions.add(*questions)
         return ans_paper
 
 
@@ -285,7 +300,7 @@ class AnswerPaper(models.Model):
 
     # All questions that remain to be attempted for a particular Student
     # (a list of ids separated by '|')
-    questions = models.CharField(max_length=128)
+    questions = models.ManyToManyField(Question, related_name="answerpaper_questions_set")
 
     # The Quiz to which this question paper is attached to.
     question_paper = models.ForeignKey(QuestionPaper)
@@ -303,7 +318,7 @@ class AnswerPaper(models.Model):
     user_ip = models.CharField(max_length=15)
 
     # The questions successfully answered (a list of ids separated by '|')
-    questions_answered = models.CharField(max_length=128)
+    questions_answered = models.ManyToManyField(Question, related_name="answerpaper_questions_answered_set")
 
     # All the submitted answers.
     answers = models.ManyToManyField(Answer)
@@ -337,10 +352,11 @@ class AnswerPaper(models.Model):
         qu = self.get_unanswered_questions()
         return len(qu)
 
+
     def get_unanswered_questions(self):
         """Returns the list of unanswered questions."""
-        qa = self.questions_answered.split('|')
-        qs = self.questions.split('|')
+        qa = self.questions_answered.all()
+        qs = self.questions.all()
         qu = [q for q in qs if q not in qa]
         return qu
 
@@ -349,11 +365,8 @@ class AnswerPaper(models.Model):
             Adds the completed question to the list of answered 
             questions and returns the next question.
         """
-        qa = self.questions_answered
-        if len(qa) > 0:
-            self.questions_answered = '|'.join([qa, str(question_id)])
-        else:
-            self.questions_answered = str(question_id)
+        question = Question.objects.get(id=question_id)
+        self.questions_answered.add(question)
         self.save()
 
         return self.skip(question_id)
@@ -364,13 +377,14 @@ class AnswerPaper(models.Model):
              available question.
         """
         qu = self.get_unanswered_questions()
-        qs = self.questions.split('|')
+        qs = list(self.questions.all())
+        question = Question.objects.get(id=question_id)
 
         if len(qu) == 0:
-            return ''
+            return None
 
         try:
-            q_index = qs.index(unicode(question_id))
+            q_index = qs.index(question)
         except ValueError:
             return qs[0]
 
@@ -397,9 +411,8 @@ class AnswerPaper(models.Model):
 
     def get_answered_str(self):
         """Returns the answered questions, sorted and as a nice string."""
-        qa = self.questions_answered.split('|')
-        answered = ', '.join(sorted(qa))
-        return answered if answered else 'None'
+        qa = self.questions_answered.order_by('id')
+        return qa if qa else 'None'
 
     def update_marks_obtained(self):
         """Updates the total marks earned by student for this paper."""
