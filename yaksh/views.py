@@ -833,7 +833,6 @@ def start(request, attempt_num=None, questionpaper_id=None):
         user_dir = get_user_dir(user)
         return start(request, attempt_num, questionpaper_id)
 
-@login_required
 def get_questions(paper):
     '''
         Takes answerpaper as an argument. Returns the total questions as
@@ -1209,14 +1208,13 @@ def monitor(request, questionpaper_id=None):
                                  context_instance=ci)
 
 
-@login_required
 def get_user_data(username):
     """For a given username, this returns a dictionary of important data
     related to the user including all the user's answers submitted.
     """
+    print "HELLO"
     user = User.objects.get(username=username)
     papers = AnswerPaper.objects.filter(user=user)
-
     data = {}
     try:
         profile = user.get_profile()

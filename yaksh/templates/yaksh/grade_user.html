@@ -27,15 +27,14 @@ Institute: {{ data.profile.institute }} <br/>
 
 {% for paper in data.papers %}
 
-{{ paper.total_marks }}
-
-<h2> Quiz: {{ paper.quiz.description }} </h2>
+<h2> Quiz: {{ paper.question_paper.quiz.description }} </h2>
 
 <p>
 Questions correctly answered: {{ paper.get_answered_str }} <br/>
 Total attempts at questions: {{ paper.answers.count }} <br/>
-Marks obtained: {{ paper.get_total_marks }} <br/>
+Marks obtained: {{ paper.marks_obtained }} <br/>
 Start time: {{ paper.start_time }} <br/>
+End time: {{ paper.end_time }}
 </p>
 
 {% if paper.answers.count %}
