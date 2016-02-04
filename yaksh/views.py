@@ -27,7 +27,7 @@ from settings import URL_ROOT
 from yaksh.models import AssignmentUpload
 
 # The directory where user data can be saved.
-OUTPUT_DIR = abspath(join(dirname(__file__), 'output'))
+# OUTPUT_DIR = abspath(join(dirname(__file__), 'output')) #@@@
 
 
 def my_redirect(url):
@@ -52,17 +52,17 @@ def gen_key(no_of_chars):
     return ''.join([random.choice(allowed_chars) for i in range(no_of_chars)])
 
 
-def get_user_dir(user):
-    """Return the output directory for the user."""
+# def get_user_dir(user): #@@@
+#     """Return the output directory for the user."""
 
-    user_dir = join(OUTPUT_DIR, str(user.username))
-    if not exists(user_dir):
-        os.mkdir(user_dir)
-        # Make it rwx by others.
-        os.chmod(user_dir, stat.S_IROTH | stat.S_IWOTH | stat.S_IXOTH
-                 | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR
-                 | stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP)
-    return user_dir
+#     user_dir = join(OUTPUT_DIR, str(user.username))
+#     if not exists(user_dir):
+#         os.mkdir(user_dir)
+#         # Make it rwx by others.
+#         os.chmod(user_dir, stat.S_IROTH | stat.S_IWOTH | stat.S_IXOTH
+#                  | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR
+#                  | stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP)
+#     return user_dir
 
 
 def is_moderator(user):
@@ -830,7 +830,7 @@ def start(request, attempt_num=None, questionpaper_id=None):
 
         new_paper = questionpaper.make_answerpaper(user, ip, attempt_num)
         # Make user directory.
-        user_dir = get_user_dir(user)
+        # user_dir = get_user_dir(user) #@@@
         return start(request, attempt_num, questionpaper_id)
 
 def get_questions(paper):
@@ -1083,8 +1083,8 @@ def validate_answer(user, user_answer, question, json_data=None):
                 correct = True
                 message = 'Correct answer'
         elif question.type == 'code':
-            user_dir = get_user_dir(user)
-            json_result = code_server.run_code(question.language, json_data, user_dir)
+            # user_dir = get_user_dir(user) #@@@
+            json_result = code_server.run_code(question.language, json_data, user.username) #@@@(question.language, json_data, user_dir)
             result = json.loads(json_result)
             if result.get('success'):
                 correct = True

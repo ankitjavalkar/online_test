@@ -23,7 +23,7 @@ from SimpleXMLRPCServer import SimpleXMLRPCServer
 import pwd
 import os
 import stat
-from os.path import isdir, dirname, abspath, join, isfile
+from os.path import isdir, dirname, abspath, join, isfile, exists
 import signal
 from multiprocessing import Process, Queue
 import subprocess
@@ -58,10 +58,11 @@ class CodeServer(object):
         self.queue = queue
 
     # Public Protocol ##########
-    def check_code(self, language, json_data, in_dir=None):
+    def check_code(self, language, json_data, username): #@@@(self, language, json_data, in_dir=None):
         """Calls relevant EvaluateCode class based on language to check the
          answer code
         """
+        in_dir = self._get_user_dir(username)
         code_evaluator = self._create_evaluator_instance(language, json_data,
                                                              in_dir)
         result = code_evaluator.evaluate()
@@ -87,6 +88,17 @@ class CodeServer(object):
         cls = registry.get_class(language)
         instance = cls.from_json(language, json_data, in_dir)
         return instance
+
+    def _get_user_dir(self, username): #@@@
+        """Return the output directory for the user."""
+        user_dir = abspath(join(MY_DIR, 'output', str(username)))
+        if not exists(user_dir):
+            os.mkdir(user_dir)
+            # Make it rwx by others.
+            os.chmod(user_dir, stat.S_IROTH | stat.S_IWOTH | stat.S_IXOTH
+                     | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR
+                     | stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP)
+        return user_dir
 
 
 ###############################################################################
