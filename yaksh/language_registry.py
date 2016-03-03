@@ -7,7 +7,7 @@ def set_registry():
     global registry
     registry = _LanguageRegistry()
     
-def get_registry():
+def get_registry(): # check if registry is none, if not set it, otherwise set it + testcase
     return registry
 
 class _LanguageRegistry(object):

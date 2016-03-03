@@ -50,11 +50,12 @@ def delete_signal_handler():
 
 class CodeEvaluator(object):
     """Tests the code obtained from Code Server"""
-    def __init__(self, test_case_data, test, language, user_answer, 
+    def __init__(self, tester_type, test_case_data, test, language, user_answer, 
                      ref_code_path=None, in_dir=None):
         msg = 'Code took more than %s seconds to run. You probably '\
               'have an infinite loop in your code.' % SERVER_TIMEOUT
         self.timeout_msg = msg
+        self.tester_type = tester_type
         self.test_case_data = test_case_data
         self.language = language.lower()
         self.user_answer = user_answer
@@ -70,7 +71,8 @@ class CodeEvaluator(object):
         test_case_data = json_data.get("test_case_data")
         user_answer = json_data.get("user_answer")
         ref_code_path = json_data.get("ref_code_path")
-        test = json_data.get("test") 
+        test = json_data.get("test")
+        tester_type = json_data.get("tester_type")
 
         instance = cls(test_case_data, test, language, user_answer, ref_code_path,
                          in_dir)
@@ -106,10 +108,10 @@ class CodeEvaluator(object):
         return result
 
     # Private Protocol ##########
-    def _setup(self):
+    def _setup(self): #@@@ move to above setup, setup + teardown => pass, must be Public method
         self._change_dir(self.in_dir)
 
-    def _evaluate(self, args):
+    def _evaluate(self, args): #@@@ rename _safe_evaluate, check_code+setup+teardown should be public
         # Add a new signal handler for the execution of this code.
         prev_handler = create_signal_handler()
         success = False

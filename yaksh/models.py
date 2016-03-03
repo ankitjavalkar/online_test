@@ -7,6 +7,42 @@ from django.contrib.auth.models import User
 from taggit.managers import TaggableManager
 
 
+languages = (
+        ("python", "Python"),
+        ("bash", "Bash"),
+        ("c", "C Language"),
+        ("cpp", "C++ Language"),
+        ("java", "Java Language"),
+        ("scilab", "Scilab"),
+    )
+
+question_types = (
+        ("mcq", "Multiple Choice"),
+        ("mcc", "Multiple Correct Choices"),
+        ("code", "Code"),
+        ("upload", "Assignment Upload"),
+    )
+
+tester_types = (
+        ("assertion_testcase", "Assertion Testcase"),
+        ("stdout_testcase", "Stdout Testcase"),
+        ("argument_based_testcase", "Arguments Based Testcase"),
+    )
+
+
+attempts = [(i, i) for i in range(1, 6)]
+attempts.append((-1, 'Infinite'))
+days_between_attempts = ((j, j) for j in range(401))
+
+test_status = (
+                ('inprogress', 'Inprogress'),
+                ('completed', 'Completed'),
+              )
+
+def get_assignment_dir(instance, filename):
+    return '%s/%s' % (instance.user.roll_number, instance.assignmentQuestion.id)
+
+
 ###############################################################################
 class ConcurrentUser(models.Model):
     concurrent_user = models.OneToOneField(User, null=False)
@@ -21,36 +57,6 @@ class Profile(models.Model):
     institute = models.CharField(max_length=128)
     department = models.CharField(max_length=64)
     position = models.CharField(max_length=64)
-
-
-languages = (
-        ("python", "Python"),
-        ("bash", "Bash"),
-        ("c", "C Language"),
-        ("cpp", "C++ Language"),
-        ("java", "Java Language"),
-        ("scilab", "Scilab"),
-    )
-
-
-question_types = (
-        ("mcq", "Multiple Choice"),
-        ("mcc", "Multiple Correct Choices"),
-        ("code", "Code"),
-        ("upload", "Assignment Upload"),
-    )
-attempts = [(i, i) for i in range(1, 6)]
-attempts.append((-1, 'Infinite'))
-days_between_attempts = ((j, j) for j in range(401))
-
-test_status = (
-                ('inprogress', 'Inprogress'),
-                ('completed', 'Completed'),
-              )
-
-
-def get_assignment_dir(instance, filename):
-    return '%s/%s' % (instance.user.roll_number, instance.assignmentQuestion.id)
 
 
 ###############################################################################
@@ -83,6 +89,9 @@ class Question(models.Model):
     # The type of question.
     type = models.CharField(max_length=24, choices=question_types)
 
+    # The type of test case
+    tester_type = models.CharField(max_length=24, choices=tester_types)
+
     # Is this question active or not. If it is inactive it will not be used
     # when creating a QuestionPaper.
     active = models.BooleanField(default=True)
@@ -92,6 +101,26 @@ class Question(models.Model):
 
     # Tags for the Question.
     tags = TaggableManager()
+
+    # def consolidate_answer_data(self, test_cases, user_answer):
+    #     # from tester.python.verifier import detect_backend #@@@
+    #     from tester.python.verifier import PythonTesterBackend
+    #     question_info = {}
+    #     test_case_data_list = []
+
+    #     test_case_backend = PythonTesterBackend() #@@@ detect_backend(self.language)
+
+    #     for t in test_cases:
+    #         t_data = test_case_backend.pack(t)
+    #         test_case_data_list.append(t_data)
+
+    #     question_info['id'] = self.id
+    #     question_info['user_answer'] = user_answer
+    #     question_info['test_parameters'] = test_case_data_list
+    #     question_info['ref_code_path'] = self.ref_code_path
+    #     question_info['test'] = self.test
+
+    #     return json.dumps(question_info)
 
     def consolidate_answer_data(self, test_cases, user_answer):
         test_case_data_dict = []
@@ -125,6 +154,7 @@ class Question(models.Model):
         question_info_dict['test_parameter'] = test_case_data_dict
         question_info_dict['ref_code_path'] = self.ref_code_path
         question_info_dict['test'] = self.test
+        question_info_dict['tester_type'] = self.tester_type
 
         return json.dumps(question_info_dict)
 

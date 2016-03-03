@@ -80,9 +80,9 @@ class CodeServer(object):
         server.serve_forever()
 
     # Private Protocol ##########
-    def _create_evaluator_instance(self, language, json_data, in_dir):
+    def _create_evaluator_instance(self, language, json_data, in_dir): #@@@ should be in registry module
         """Create instance of relevant EvaluateCode class based on language"""
-        set_registry()
+        set_registry() ###noto to be set everytime
         registry = get_registry()
         cls = registry.get_class(language)
         instance = cls.from_json(language, json_data, in_dir)
