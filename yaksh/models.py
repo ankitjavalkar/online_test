@@ -163,11 +163,7 @@ class Question(models.Model):
     active = models.BooleanField(default=True)
 
     # Snippet of code provided to the user.
-<<<<<<< HEAD
-    snippet = models.CharField(max_length=256, blank=True)
-=======
     # snippet = models.CharField(max_length=256)
->>>>>>> - Connect test case type models to backend code server
 
     # Tags for the Question.
     tags = TaggableManager(blank=True)
