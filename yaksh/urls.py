@@ -84,5 +84,8 @@ urlpatterns += [
     url(r'manage/enroll/rejected/(?P<course_id>\d+)/$',
         views.enroll, {'was_rejected': True}),
     url(r'manage/enrolled/reject/(?P<course_id>\d+)/$',
-        views.reject, {'was_enrolled': True})
+        views.reject, {'was_enrolled': True}),
+    url(r'^manage/testcase/(?P<question_id>\d+)/$', views.add_testcase),
+    url(r'^manage/testcase/(?P<question_id>\d+)/(?P<test_case_id>\d+)/$', views.add_testcase),
+    url(r'^manage/showtestcase/(?P<question_id>\d+)/$', views.show_testcase),
 ]
