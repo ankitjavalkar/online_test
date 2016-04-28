@@ -43,7 +43,7 @@ urlpatterns += [
     url(r'^manage/addquestion/$', views.add_question),
     url(r'^manage/addquestion/(?P<question_id>\d+)/$', views.add_question),
     url(r'^manage/addquiz/$', views.add_quiz),
-    url(r'^manage/addquiz/(?P<quiz_id>\d+)/$', views.add_quiz),
+    url(r'^manage/addquiz/(?P<quiz_id>\d+)/$', views.edit_quiz),
     url(r'^manage/gradeuser/$', views.show_all_users),
     url(r'^manage/gradeuser/(?P<username>.*)/(?P<questionpaper_id>\d+)/$',
         views.grade_user),
@@ -85,7 +85,4 @@ urlpatterns += [
         views.enroll, {'was_rejected': True}),
     url(r'manage/enrolled/reject/(?P<course_id>\d+)/$',
         views.reject, {'was_enrolled': True}),
-    url(r'^manage/testcase/(?P<question_id>\d+)/$', views.add_testcase),
-    url(r'^manage/testcase/(?P<question_id>\d+)/(?P<test_case_id>\d+)/$', views.add_testcase),
-    url(r'^manage/showtestcase/(?P<question_id>\d+)/$', views.show_testcase),
 ]
