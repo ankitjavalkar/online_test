@@ -226,14 +226,3 @@ class ProfileForm(forms.ModelForm):
         self.fields['first_name'].initial = user.first_name
         self.fields['last_name'].initial = user.last_name
 
-
-class StandardTestCaseForm(forms.ModelForm):
-    class Meta:
-        model = StandardTestCase
-        fields = ['test_case']
-
-
-class StdoutBasedTestCaseForm(forms.ModelForm):
-    class Meta:
-        model = StdoutBasedTestCase
-        fields = ['output']

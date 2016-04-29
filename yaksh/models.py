@@ -233,15 +233,18 @@ class Question(models.Model):
 
         return json.dumps(question_data)
 
-    def get_test_cases(self):
+    def get_test_cases(self, **kwargs):
         test_case_ctype = ContentType.objects.get(app_label="yaksh", model=self.test_case_type)
-        test_cases = test_case_ctype.get_all_objects_for_this_type(question=self)
+        test_cases = test_case_ctype.get_all_objects_for_this_type(question=self, **kwargs)
 
         return test_cases
 
-    def get_test_case(self, test_case_id):
+    # def get_test_case(self, test_case_id):
+    #     test_case_ctype = ContentType.objects.get(app_label="yaksh", model=self.test_case_type)
+    #     test_case = test_case_ctype.get_object_for_this_type(question=self, id=test_case_id)
+    def get_test_case(self, **kwargs):
         test_case_ctype = ContentType.objects.get(app_label="yaksh", model=self.test_case_type)
-        test_case = test_case_ctype.get_object_for_this_type(question=self, id=test_case_id)
+        test_case = test_case_ctype.get_object_for_this_type(question=self, **kwargs)
 
         return test_case
 
