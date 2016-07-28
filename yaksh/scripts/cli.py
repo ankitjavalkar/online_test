@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import django
 import subprocess
 import contextlib
 import os
@@ -8,7 +9,8 @@ import argparse
 from importlib import import_module
 from django.conf import settings
 from django.core import management
-from django.template import Template, Context, loader
+from django.template import Template, Context
+from django.template.loader import get_template
 
 from project_detail import NAME, PATH 
 
@@ -16,6 +18,16 @@ CUR_DIR = os.getcwd()
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 PARENT_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, os.pardir))
 TEMPLATE_DIR = path.join(PARENT_DIR, 'demo_templates')
+
+temp = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'APP_DIRS': True,
+    },
+]
+
+settings.configure(TEMPLATES=temp)
+django.setup()
 
 def main():
     #Parse command-line to obtain the arguments and/or options
@@ -133,7 +145,7 @@ def _render_demo_files(template_path, output_path, context=None):
         content = template_file.read()
         if context:
             content = content.decode('utf-8')
-            template = Template(content)
+            template = Template(content) #get_template(template_file)
             content = template.render(context)
             content = content.encode('utf-8')
 

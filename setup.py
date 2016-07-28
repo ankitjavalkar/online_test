@@ -10,7 +10,7 @@ setup(
     name='yaksh',
     author='Python Team at FOSSEE, IIT Bombay',
     author_email='python@fossee.in',
-    version='0.1.1',
+    version='0.1.3',
     packages=find_packages(),
     include_package_data=True,
     url = 'https://pypi.python.org/pypi/yaksh/',
