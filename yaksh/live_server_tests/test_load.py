@@ -26,7 +26,6 @@ class YakshSeleniumTests(StaticLiveServerTestCase):
             "yaksh.cpp_code_evaluator.CppCodeEvaluator"
         settings.code_evaluators['bash']['standardtestcase'] = \
             "yaksh.bash_code_evaluator.BashCodeEvaluator"
-        settings.SERVER_POOL_PORT = 53578
         code_server_pool = ServerPool(ports=settings.SERVER_PORTS, pool_port=settings.SERVER_POOL_PORT)
         cls.code_server_pool = code_server_pool
         cls.code_server_thread = t = Thread(target=code_server_pool.run)
@@ -62,8 +61,6 @@ class YakshSeleniumTests(StaticLiveServerTestCase):
         Question.objects.all().delete()
         Quiz.objects.all().delete()
         Course.objects.all().delete()
-
-        settings.SERVER_POOL_PORT = 53579
 
         cls.code_server_pool.stop()
         cls.code_server_thread.join()
