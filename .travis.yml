@@ -9,7 +9,7 @@ env:
 
 # command to install dependencies
 install:
-  - pip install git+https://github.com/FOSSEE/online_test.git#egg=yaksh-0.1
+  - pip install git+https://github.com/ankitjavalkar/online_test.git@fix-selen-test2
   - pip install -q Django==$DJANGO
 
 before_install:
