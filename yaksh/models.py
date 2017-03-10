@@ -635,10 +635,11 @@ class QuestionPaperManager(models.Manager):
             trial_questionpaper = self.create(quiz=trial_quiz,
                                               total_marks=10,
                                               )
-            for q_id in questions_list:
-                que = Question.objects.get(id=q_id)
-                FixedQuestions.objects.add_fixed_questions(
-                    trial_questionpaper, que)
+            trial_questionpaper.fixed_questions.add(*questions_list)
+            # for q_id in questions_list:
+            #     que = Question.objects.get(id=q_id)
+            #     FixedQuestions.objects.add_fixed_questions(
+            #         trial_questionpaper, que)
             return trial_questionpaper
 
     def create_trial_paper_to_test_quiz(self, trial_quiz, original_quiz_id):
